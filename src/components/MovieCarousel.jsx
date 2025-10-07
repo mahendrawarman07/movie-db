@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight, Film } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MovieCard from './MovieCard';
+import { getRecommendedMovies } from '../utilities/aiRecommendations';
+import { useWatchlist } from './context/WatchlistContext';
 
 const API_KEY = 'af3436a31f5d01d0b6665445693316f2';
 const BASE_URL = 'https://api.themoviedb.org/3';
@@ -12,25 +14,50 @@ const MovieCarousel = ({ endpoint, title, icon, seeAllPath }) => {
   const [scrollPosition, setScrollPosition] = useState(0);
   const containerRef = useRef(null);
   const navigate = useNavigate();
+  const { watchlist } = useWatchlist();
 
   useEffect(() => {
     fetchMovies();
-  }, [endpoint]);
+  }, [endpoint]); // Add watchlist as dependency
 
-  const fetchMovies = async () => {
-    setLoading(true);
-    try {
+const fetchMovies = async () => {
+  setLoading(true);
+  try {
+    // Check if this is AI recommendations
+    if (endpoint === 'ai_recommended') {
+      // Use watchlist from hook (already available in component scope)
+      const recommendedMovies = await getRecommendedMovies(watchlist);
+      console.log(recommendedMovies);
+      setMovies(recommendedMovies || []);
+    } else {
+      // Original TMDB endpoint logic
       const response = await fetch(
         `${BASE_URL}/movie/${endpoint}?api_key=${API_KEY}&page=1`
       );
       const data = await response.json();
-      setMovies(data.results?.slice(0, 20) || []); // Get first 20 movies
-    } catch (err) {
-      console.error('Failed to fetch movies:', err);
-    } finally {
-      setLoading(false);
+      setMovies(data.results?.slice(0, 20) || []);
     }
-  };
+  } catch (err) {
+    console.error('Failed to fetch movies:', err);
+    setMovies([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  // ADD THIS NEW FUNCTION
+const fetchAIRecommendations = async () => {
+  setLoading(true);
+  try {
+    const { watchlist } = useWatchlist(); // Import at top
+    const recommendedMovies = await getRecommendedMovies(watchlist);
+    setMovies(recommendedMovies);
+  } catch (err) {
+    console.error('Failed to fetch AI recommendations:', err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const scroll = (direction) => {
     const container = containerRef.current;

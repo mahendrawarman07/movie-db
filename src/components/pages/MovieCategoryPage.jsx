@@ -21,6 +21,8 @@ const MovieCategoryPage = ({ endpoint, title, icon }) => {
   const [filters, setFilters] = useState({
     genres: [],
     year: 'all',
+    yearFrom: undefined,
+    yearTo: undefined,
     rating: 'all',
     sort: 'popularity.desc'
   });
@@ -38,43 +40,93 @@ const MovieCategoryPage = ({ endpoint, title, icon }) => {
     }
 
     try {
-      // Build query params
-      const params = new URLSearchParams({
+      let url;
+      let params = new URLSearchParams({
         api_key: API_KEY,
-        page: page,
-        sort_by: filters.sort
+        page: page
       });
 
-      // Add genre filter
-      if (filters.genres.length > 0) {
-        params.append('with_genres', filters.genres.join(','));
-      }
+      // Check if user has applied any filters
+      const hasFilters = 
+        filters.genres.length > 0 || 
+        (filters.year && filters.year !== 'all') ||
+        (filters.rating && filters.rating !== 'all') ||
+        (filters.sort && filters.sort !== 'popularity.desc');
 
-      // Add year filter
-      if (filters.year && filters.year !== 'all') {
-        if (filters.year.includes('-')) {
-          const [startYear, endYear] = filters.year.split('-');
-          params.append('primary_release_date.gte', `${startYear}-01-01`);
-          params.append('primary_release_date.lte', `${endYear}-12-31`);
-        } else {
-          params.append('primary_release_year', filters.year);
+      // If filters are applied, use discover endpoint
+      // Otherwise, use the category-specific endpoint for authentic results
+      if (hasFilters) {
+        url = `${BASE_URL}/discover/movie`;
+        
+        // Add sort
+        params.append('sort_by', filters.sort);
+        params.append('include_adult', 'false');
+        params.append('include_video', 'false');
+        params.append('language', 'en-US');
+
+        // Apply category-specific constraints
+        const today = new Date().toISOString().split('T')[0];
+        
+        if (endpoint === 'now_playing') {
+          // Now playing: released in last 3 months
+          const threeMonthsAgo = new Date();
+          threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+          const threeMonthsAgoStr = threeMonthsAgo.toISOString().split('T')[0];
+          
+          params.append('primary_release_date.gte', threeMonthsAgoStr);
+          params.append('primary_release_date.lte', today);
+        } else if (endpoint === 'upcoming') {
+          // Upcoming: releasing in the future
+          params.append('primary_release_date.gte', today);
+          
+          const oneYearLater = new Date();
+          oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
+          params.append('primary_release_date.lte', oneYearLater.toISOString().split('T')[0]);
+        } else if (endpoint === 'top_rated') {
+          // Top rated: high ratings with enough votes
+          params.append('vote_average.gte', '7');
+          params.append('vote_count.gte', '1000');
         }
+
+        // Add genre filter
+        if (filters.genres.length > 0) {
+          params.append('with_genres', filters.genres.join(','));
+        }
+
+        // Add year filter
+        if (filters.year && filters.year !== 'all') {
+          if (filters.year === 'custom' && filters.yearFrom && filters.yearTo) {
+            params.append('primary_release_date.gte', `${filters.yearFrom}-01-01`);
+            params.append('primary_release_date.lte', `${filters.yearTo}-12-31`);
+          } else if (filters.year.includes('-')) {
+            const [startYear, endYear] = filters.year.split('-');
+            params.append('primary_release_date.gte', `${startYear}-01-01`);
+            params.append('primary_release_date.lte', `${endYear}-12-31`);
+          } else {
+            params.append('primary_release_year', filters.year);
+          }
+        }
+
+        // Add rating filter
+        if (filters.rating && filters.rating !== 'all') {
+          if (filters.rating === '0-5') {
+            params.append('vote_average.lte', '5');
+          } else {
+            params.append('vote_average.gte', filters.rating);
+          }
+          params.append('vote_count.gte', '100');
+        }
+      } else {
+        // No filters applied, use the original category endpoint
+        url = `${BASE_URL}/movie/${endpoint}`;
       }
 
-      // Add rating filter
-      if (filters.rating && filters.rating !== 'all') {
-        params.append('vote_average.gte', filters.rating);
-        params.append('vote_count.gte', '100'); // Minimum votes for reliability
-      }
-      console.log(params.toString());
-      const response = await fetch(
-        `${BASE_URL}/discover/movie?include_adult=false&include_video=false&language=en-US&${params.toString()}`
-      );
+      const response = await fetch(`${url}?${params.toString()}`);
       const data = await response.json();
 
       setMovies(prev => append ? [...prev, ...data.results] : data.results);
       setCurrentPage(data.page);
-      setTotalPages(data.total_pages);
+      setTotalPages(Math.min(data.total_pages, 500)); // TMDB limits to 500 pages
       setTotalResults(data.total_results);
     } catch (err) {
       console.error('Failed to fetch movies:', err);
@@ -122,9 +174,10 @@ const MovieCategoryPage = ({ endpoint, title, icon }) => {
           )}
         </div>
 
-        {/* Filter Bar */}
+        {/* Filter Bar - Pass categoryEndpoint prop */}
         <FilterBar 
           type="category"
+          categoryEndpoint={endpoint}
           activeFilters={filters}
           onFilterChange={handleFilterChange}
         />
@@ -163,7 +216,7 @@ const MovieCategoryPage = ({ endpoint, title, icon }) => {
                       Loading...
                     </>
                   ) : (
-                    `Load More (${totalResults - movies.length} remaining)`
+                    `Load More (${Math.min(totalResults - movies.length, (totalPages - currentPage) * 20)} remaining)`
                   )}
                 </button>
               </div>

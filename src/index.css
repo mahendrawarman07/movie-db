@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+
+#similar-movies-container::-webkit-scrollbar {
+  display: none;
+}
+
 /* Bookmark animations */
 @keyframes bookmark-pop {
   0% { transform: scale(1); }
@@ -96,3 +101,5 @@
   background: #4f46e5; /* Indigo */
   border-radius: 4px;
 }
+
+

@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState , useEffect} from "react";
 import { Search, Film, Loader, ChevronDown, Bookmark } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate , useLocation} from "react-router-dom";
 import { useWatchlist } from "./context/WatchlistContext";
 import MovieCard from "./MovieCard";
 // import MovieGrid from "./MovieGrid";
@@ -10,6 +10,10 @@ import MovieCarousel from "./MovieCarousel";
 import FeaturedHero from "./FeaturedHero";
 import MobileNavbar from "./MobileNavbar";
 import BackToTop from "./BacktoTop";
+import FilterBar from './FilterBar';
+
+// Inside Home component, add:
+
 
 const API_KEY = "af3436a31f5d01d0b6665445693316f2";
 const BASE_URL = "https://api.themoviedb.org/3";
@@ -29,6 +33,28 @@ const Home = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [totalResults, setTotalResults] = useState(0);
 
+  const [searchFilters, setSearchFilters] = useState({
+  genres: [],
+  year: 'all',
+  yearFrom: undefined,
+  yearTo: undefined,
+  rating: 'all',
+  sort: 'popularity.desc'
+});
+
+const location = useLocation();
+
+// Check if coming from movie details with search state
+useEffect(() => {
+  if (location.state?.fromSearch && location.state?.searchQuery) {
+    setSearchQuery(location.state.searchQuery);
+    setHasSearched(true);
+    searchMovies(location.state.searchQuery, 1, false);
+  }
+}, []);
+
+
+
   // Tab state
   // const [activeTab, setActiveTab] = useState("search");
 
@@ -44,51 +70,94 @@ const Home = () => {
   //   },
   // ];
 
-  const searchMovies = async (query, page = 1, append = false) => {
-    // console.log('Searching for:', query);
-    if (!query.trim()) return;
+const searchMovies = async (query, page = 1, append = false) => {
+  if (!query.trim()) return;
 
-    if (append) {
-      setLoadingMore(true);
-    } else {
-      setLoading(true);
-      setSearchResults([]);
-    }
+  if (append) {
+    setLoadingMore(true);
+  } else {
+    setLoading(true);
+    setSearchResults([]);
+  }
 
-    setError("");
-    setHasSearched(true);
+  setError('');
+  setHasSearched(true);
 
-    try {
-      const response = await fetch(
-        `${BASE_URL}/search/movie?api_key=${API_KEY}&query=${query}&page=${page}`
-      );
-      const data = await response.json();
-      // console.log('Search response:', data);
-      if (data && data.results.length > 0) {
-        setSearchResults((prev) =>
-          append ? [...prev, ...data.results] : data.results
-        );
-        setCurrentPage(data.page);
-        setTotalPages(data.total_pages);
-        setTotalResults(data.total_results);
-        // setActiveTab("search"); // Switch to search tab
+  try {
+    const params = new URLSearchParams({
+      api_key: API_KEY,
+      query: query,
+      page: page,
+      sort_by: searchFilters.sort
+    });
+
+    // Add year filter
+    if (searchFilters.year && searchFilters.year !== 'all') {
+      if (searchFilters.year === 'custom' && searchFilters.yearFrom && searchFilters.yearTo) {
+        params.append('primary_release_date.gte', `${searchFilters.yearFrom}-01-01`);
+        params.append('primary_release_date.lte', `${searchFilters.yearTo}-12-31`);
+      } else if (searchFilters.year.includes('-')) {
+        const [startYear, endYear] = searchFilters.year.split('-');
+        params.append('primary_release_date.gte', `${startYear}-01-01`);
+        params.append('primary_release_date.lte', `${endYear}-12-31`);
       } else {
-        setSearchResults([]);
-        setError("No movies found");
+        params.append('primary_release_year', searchFilters.year);
       }
-    } catch (err) {
-      setError("Failed to fetch movies. Please try again." + err);
-      setSearchResults([]);
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
     }
-  };
+
+    // Add rating filter
+    if (searchFilters.rating && searchFilters.rating !== 'all') {
+      if (searchFilters.rating === '0-5') {
+        params.append('vote_average.lte', '5');
+      } else {
+        params.append('vote_average.gte', searchFilters.rating);
+      }
+      params.append('vote_count.gte', '100');
+    }
+    console.log( `${params.toString()}`);
+    const response = await fetch(
+      `${BASE_URL}/search/movie?${params.toString()}`
+    );
+    const data = await response.json();
+
+    if (data && data.results.length > 0) {
+      setSearchResults(prev => append ? [...prev, ...data.results] : data.results);
+      setCurrentPage(data.page);
+      setTotalPages(data.total_pages);
+      setTotalResults(data.total_results);
+    } else {
+      setSearchResults([]);
+      setError('No movies found');
+    }
+  } catch (err) {
+    setError('Failed to fetch movies. Please try again.');
+    setSearchResults([]);
+  } finally {
+    setLoading(false);
+    setLoadingMore(false);
+  }
+};
+
+  useEffect(() => {
+  if (hasSearched && searchQuery) {
+    console.log(searchQuery);
+    searchMovies(searchQuery, 1, false);
+  }
+}, [searchFilters]);
+
+
 
   const handleSearch = () => {
     setCurrentPage(1);
     searchMovies(searchQuery, 1, false);
   };
+
+  const handleSearchFilterChange = (newFilters) => {
+  setSearchFilters(newFilters);
+  if (hasSearched && searchQuery) {
+    searchMovies(searchQuery, 1, false);
+  }
+};
 
   const handleLoadMore = () => {
     const nextPage = currentPage + 1;
@@ -100,6 +169,8 @@ const Home = () => {
       handleSearch();
     }
   };
+
+
 
   const hasMoreResults = currentPage < totalPages;
   const showingCount = searchResults.length;
@@ -271,12 +342,25 @@ const Home = () => {
                     </p>
                   </div>
                 </div>
-
+                    {/* ADD FILTER BAR HERE */}
+                <FilterBar 
+                  type="search"
+                  activeFilters={searchFilters}
+                  // onFilterChange={setSearchFilters}
+                  onFilterChange={handleSearchFilterChange}
+                />
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
-                  {searchResults.map((movie) => (
-                    <MovieCard key={movie.id} movie={movie} />
-                  ))}
-                </div>
+  {searchResults.map((movie) => (
+    <div 
+      key={movie.id} 
+      onClick={() => navigate(`/movie/${movie.id}`, { 
+        state: { fromSearch: true, searchQuery: searchQuery }
+      })}
+    >
+      <MovieCard movie={movie} />
+    </div>
+  ))}
+</div>
 
                 {hasMoreResults && (
                   <div className="mt-12 text-center">
@@ -334,6 +418,16 @@ const Home = () => {
               icon="🏆"
               seeAllPath="/movies/top-rated"
             />
+
+            {/* AI Recommended Carousel - Only show if watchlist has movies */}
+{watchlistCount > 0 && (
+  <MovieCarousel
+    endpoint="ai_recommended"
+    title="AI Recommended for You"
+    icon="✨"
+    seeAllPath="/movies/ai-recommended"
+  />
+)}
           </>
         )}
       </div>

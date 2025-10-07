@@ -24,9 +24,12 @@ const MovieCard = ({ movie }) => {
     return "bg-red-500";
   };
 
-  const handleCardClick = () => {
+const handleCardClick = (e) => {
+  // Only navigate if not clicked from search results (which handles it)
+  if (!e.defaultPrevented) {
     navigate(`/movie/${movie.id}`);
-  };
+  }
+};
 
   const handleWatchlistClick = (e) => {
     e.stopPropagation(); // Prevent card click
@@ -47,8 +50,8 @@ const MovieCard = ({ movie }) => {
   // For now, we'll just show what's available
 
   return (
-    <div className="group cursor-pointer" onClick={handleCardClick}>
-      <div className="relative overflow-hidden rounded-lg bg-slate-900 backdrop-blur-sm border border-slate-700/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/20 hover:border-indigo-500/50">
+    <div className="group cursor-pointer transition-transform duration-300 hover:scale-105 hover:z-10" onClick={handleCardClick}>
+      <div className="relative overflow-hidden rounded-lg bg-slate-900 backdrop-blur-sm border border-slate-700/50 transition-all duration-300  hover:shadow-2xl hover:shadow-indigo-500/20 hover:border-indigo-500/50">
         {/* Poster Section */}
         <div className="relative w-full pb-[150%] bg-slate-900/50">
           {posterUrl ? (

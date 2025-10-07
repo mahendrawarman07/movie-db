@@ -14,6 +14,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+
 const API_KEY = "af3436a31f5d01d0b6665445693316f2";
 const BASE_URL = "https://api.themoviedb.org/3";
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
@@ -332,130 +333,246 @@ const MovieDetails = ({
           ))}
         </div>
 
-        {activeTab === "about" && (
-          <div className="space-y-8 pb-8">
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-4">Overview</h2>
-              <p className="text-slate-300 text-lg leading-relaxed">
-                {movie.overview}
-              </p>
+{activeTab === 'about' && (
+  <div className="space-y-8 pb-8">
+    {/* Overview */}
+    <div>
+      <h2 className="text-2xl font-bold text-white mb-4">Overview</h2>
+      <p className="text-slate-300 text-lg leading-relaxed">{movie.overview}</p>
+    </div>
+
+    {/* Movie Details Grid */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Original Title */}
+      {movie.original_title && movie.original_title !== movie.title && (
+        <div>
+          <h3 className="text-sm font-semibold text-slate-400 mb-2">Original Title</h3>
+          <p className="text-white">{movie.original_title}</p>
+        </div>
+      )}
+
+      {/* Status */}
+      {movie.status && (
+        <div>
+          <h3 className="text-sm font-semibold text-slate-400 mb-2">Status</h3>
+          <p className="text-white">{movie.status}</p>
+        </div>
+      )}
+
+      {/* Original Language */}
+      {movie.original_language && (
+        <div>
+          <h3 className="text-sm font-semibold text-slate-400 mb-2">Original Language</h3>
+          <p className="text-white uppercase">{movie.original_language}</p>
+        </div>
+      )}
+
+      {/* Budget */}
+      {movie.budget > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold text-slate-400 mb-2">Budget</h3>
+          <p className="text-white">${movie.budget.toLocaleString()}</p>
+        </div>
+      )}
+
+      {/* Revenue */}
+      {movie.revenue > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold text-slate-400 mb-2">Revenue</h3>
+          <p className="text-white">${movie.revenue.toLocaleString()}</p>
+        </div>
+      )}
+
+      {/* Profit */}
+      {movie.revenue > 0 && movie.budget > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold text-slate-400 mb-2">Profit</h3>
+          <p className={`font-semibold ${movie.revenue - movie.budget > 0 ? 'text-green-400' : 'text-red-400'}`}>
+            ${(movie.revenue - movie.budget).toLocaleString()}
+          </p>
+        </div>
+      )}
+
+      {/* Vote Count */}
+      {movie.vote_count > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold text-slate-400 mb-2">Vote Count</h3>
+          <p className="text-white">{movie.vote_count.toLocaleString()} votes</p>
+        </div>
+      )}
+
+      {/* Popularity */}
+      {movie.popularity && (
+        <div>
+          <h3 className="text-sm font-semibold text-slate-400 mb-2">Popularity</h3>
+          <p className="text-white">{movie.popularity.toFixed(1)}</p>
+        </div>
+      )}
+
+      {/* Homepage */}
+      {movie.homepage && (
+        <div>
+          <h3 className="text-sm font-semibold text-slate-400 mb-2">Official Website</h3>
+          <a 
+            href={movie.homepage} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1"
+          >
+            Visit Site
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        </div>
+      )}
+    </div>
+
+    {/* Director */}
+    {director && (
+      <div>
+        <h3 className="text-xl font-bold text-white mb-4">Director</h3>
+        <div 
+          onClick={() => handlePersonClick(director.id, director.name)}
+          className="inline-flex items-center gap-4 cursor-pointer hover:bg-slate-900/50 p-3 rounded-lg transition-all"
+        >
+          {director.profile_path ? (
+            <img 
+              src={`${IMAGE_BASE_URL}/w200${director.profile_path}`}
+              alt={director.name}
+              className="w-16 h-16 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center">
+              <User className="text-slate-600" size={32} />
             </div>
+          )}
+          <p className="text-slate-300 text-lg hover:text-indigo-400 transition-colors">{director.name}</p>
+        </div>
+      </div>
+    )}
 
-            {director && (
-              <div>
-                <h3 className="text-xl font-bold text-white mb-4">Director</h3>
-                <div
-                  onClick={() => handlePersonClick(director.id, director.name)}
-                  className="inline-flex items-center gap-4 cursor-pointer hover:bg-slate-900/50 p-3 rounded-lg transition-all"
-                >
-                  {director.profile_path ? (
-                    <img
-                      src={`${IMAGE_BASE_URL}/w200${director.profile_path}`}
-                      alt={director.name}
-                      className="w-16 h-16 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center">
-                      <User className="text-slate-600" size={32} />
-                    </div>
-                  )}
-                  <p className="text-slate-300 text-lg hover:text-indigo-400 transition-colors">
-                    {director.name}
-                  </p>
-                </div>
-              </div>
-            )}
+    {/* Production Companies */}
+    {movie.production_companies?.length > 0 && (
+      <div>
+        <h3 className="text-xl font-bold text-white mb-4">Production Companies</h3>
+        <div className="flex flex-wrap gap-6">
+          {movie.production_companies.map(company => (
+            <div key={company.id} className="flex flex-col items-center gap-2">
+              {company.logo_path ? (
+                <img 
+                  src={`${IMAGE_BASE_URL}/w200${company.logo_path}`}
+                  alt={company.name}
+                  className="h-16 object-contain bg-white p-2 rounded"
+                />
+              ) : (
+                <span className="text-slate-300">{company.name}</span>
+              )}
+              {company.logo_path && (
+                <span className="text-slate-400 text-xs">{company.name}</span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
 
-            {movie.production_companies?.length > 0 && (
-              <div>
-                <h3 className="text-xl font-bold text-white mb-4">
-                  Production Companies
-                </h3>
-                <div className="flex flex-wrap gap-4">
-                  {movie.production_companies.map((company) => (
-                    <div key={company.id} className="text-slate-300">
-                      {company.logo_path ? (
-                        <img
-                          src={`${IMAGE_BASE_URL}/w200${company.logo_path}`}
-                          alt={company.name}
-                          className="h-12 object-contain bg-white p-2 rounded"
-                        />
-                      ) : (
-                        <span>{company.name}</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+    {/* Production Countries */}
+    {movie.production_countries?.length > 0 && (
+      <div>
+        <h3 className="text-xl font-bold text-white mb-4">Production Countries</h3>
+        <div className="flex flex-wrap gap-2">
+          {movie.production_countries.map((country, idx) => (
+            <span
+              key={idx}
+              className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-sm border border-slate-700"
+            >
+              {country.name}
+            </span>
+          ))}
+        </div>
+      </div>
+    )}
 
-            {similar.length > 0 && (
-              <div>
-                <h3 className="text-xl font-bold text-white mb-4">
-                  Similar Movies
-                </h3>
-                <div className="relative group">
-                  <button
-                    onClick={() => handleSimilarScroll("left")}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 bg-slate-900/90 rounded-full hover:bg-indigo-600 transition-all opacity-0 group-hover:opacity-100"
-                  >
-                    <ChevronLeft className="text-white" size={24} />
-                  </button>
+    {/* Spoken Languages */}
+    {movie.spoken_languages?.length > 0 && (
+      <div>
+        <h3 className="text-xl font-bold text-white mb-4">Spoken Languages</h3>
+        <div className="flex flex-wrap gap-2">
+          {movie.spoken_languages.map((lang, idx) => (
+            <span
+              key={idx}
+              className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-sm border border-slate-700"
+            >
+              {lang.english_name}
+            </span>
+          ))}
+        </div>
+      </div>
+    )}
 
-                  <div
-                    id="similar-movies-container"
-                    className="flex gap-4 overflow-x-auto overflow-y-hidden scroll-smooth"
-                    // flex gap-4 overflow-x-hidden overflow-y-hidden scroll-smooth
-                    style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-                  >
-                    {similar.map((sim) => (
-                      <div
-                        key={sim.id}
-                        onClick={() => handleSimilarMovieClick(sim.id)}
-                        className="flex-shrink-0 w-36 cursor-pointer hover:scale-105 transition-transform"
-                      >
-                        {sim.poster_path ? (
-                          <img
-                            src={`${IMAGE_BASE_URL}/w200${sim.poster_path}`}
-                            alt={sim.title}
-                            className="w-full rounded-lg shadow-lg"
-                          />
-                        ) : (
-                          <div className="w-full h-54 bg-slate-800 rounded-lg flex items-center justify-center">
-                            <Film className="text-slate-600" size={32} />
-                          </div>
-                        )}
-                        <p
-                          className="text-white text-sm mt-2 overflow-hidden"
-                          style={{
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical",
-                          }}
-                        >
-                          {sim.title}
-                        </p>
-                        {sim.vote_average > 0 && (
-                          <div className="flex items-center gap-1 text-yellow-500 text-xs mt-1">
-                            <Star size={12} fill="currentColor" />
-                            <span>{sim.vote_average.toFixed(1)}</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+    {/* Similar Movies */}
+    {similar.length > 0 && (
+      <div>
+        <h3 className="text-xl font-bold text-white mb-4">Similar Movies</h3>
+        <div className="relative group">
+          <button
+            onClick={() => handleSimilarScroll('left')}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 sm:p-3 bg-slate-900/90 rounded-full hover:bg-indigo-600 transition-all opacity-0 group-hover:opacity-100 hover:scale-110 shadow-lg"
+          >
+            <ChevronLeft className="text-white" size={24} />
+          </button>
+          
+          <div 
+            id="similar-movies-container"
+            className="flex gap-4 overflow-x-auto overflow-y-hidden scroll-smooth"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {similar.map(sim => (
+              <div 
+                key={sim.id} 
+                onClick={() => handleSimilarMovieClick(sim.id)}
+                className="flex-shrink-0 w-36 cursor-pointer hover:scale-105 transition-transform"
+              >
+                {sim.poster_path ? (
+                  <img 
+                    src={`${IMAGE_BASE_URL}/w200${sim.poster_path}`}
+                    alt={sim.title}
+                    className="w-full rounded-lg shadow-lg"
+                  />
+                ) : (
+                  <div className="w-full h-54 bg-slate-800 rounded-lg flex items-center justify-center">
+                    <Film className="text-slate-600" size={32} />
                   </div>
-
-                  <button
-                    onClick={() => handleSimilarScroll("right")}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 bg-slate-900/90 rounded-full hover:bg-indigo-600 transition-all opacity-0 group-hover:opacity-100"
-                  >
-                    <ChevronRight className="text-white" size={24} />
-                  </button>
-                </div>
+                )}
+                <p className="text-white text-sm mt-2 overflow-hidden" style={{
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical'
+                }}>
+                  {sim.title}
+                </p>
+                {sim.vote_average > 0 && (
+                  <div className="flex items-center gap-1 text-yellow-500 text-xs mt-1">
+                    <Star size={12} fill="currentColor" />
+                    <span>{sim.vote_average.toFixed(1)}</span>
+                  </div>
+                )}
               </div>
-            )}
+            ))}
           </div>
-        )}
+
+          <button
+            onClick={() => handleSimilarScroll('right')}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 sm:p-3 bg-slate-900/90 rounded-full hover:bg-indigo-600 transition-all opacity-0 group-hover:opacity-100 hover:scale-110 shadow-lg"
+          >
+            <ChevronRight className="text-white" size={24} />
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
+)}
 
         {activeTab === "cast" && (
           <div className="pb-8">

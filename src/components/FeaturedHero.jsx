@@ -24,10 +24,11 @@ const FeaturedHero = () => {
         `${BASE_URL}/trending/movie/day?api_key=${API_KEY}`
       );
       const data = await response.json();
-      
+      // console.log(data);
       if (data.results && data.results.length > 0) {
         // Pick a random movie from top 10
         const randomIndex = Math.floor(Math.random() * Math.min(25, data.results.length));
+        // console.log(randomIndex);
         const selectedMovie = data.results[randomIndex];
         
         // Fetch full details for this movie

@@ -1,18 +1,25 @@
 import React, { useState } from "react";
 import { Menu, X, Film, Bookmark, Search } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useWatchlist } from "./context/WatchlistContext";
 
 const MobileNavbar = ({ searchQuery, setSearchQuery, handleKeyPress }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { watchlistCount } = useWatchlist();
 
+  // Check if we should show Home button
+  const isHomePage = location.pathname === '/';
+  
   const menuItems = [
+    // Add Home button only if not on home page
+    ...(isHomePage ? [] : [{ label: "Home", path: "/", icon: "🏠" }]),
     { label: "Popular", path: "/movies/popular", icon: "⭐" },
     { label: "Now Playing", path: "/movies/now-playing", icon: "🎬" },
     { label: "Upcoming", path: "/movies/upcoming", icon: "🎯" },
     { label: "Top Rated", path: "/movies/top-rated", icon: "🏆" },
+    { label: 'Mood Movies', path: '/movies/mood-based', icon: '🎭' }
   ];
 
   const handleMenuClick = (path) => {
@@ -24,6 +31,15 @@ const MobileNavbar = ({ searchQuery, setSearchQuery, handleKeyPress }) => {
     if (e.key === "Enter") {
       handleKeyPress(e);
       setIsMenuOpen(false); // ← Close menu after search
+    }
+  };
+
+  const handleLogoClick = () => {
+    if (location.pathname !== '/') {
+      navigate("/");
+    } else {
+      // Already on home, just scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -41,7 +57,7 @@ const MobileNavbar = ({ searchQuery, setSearchQuery, handleKeyPress }) => {
 
         {/* Center: Logo */}
         <div
-          onClick={() => navigate("/")}
+          onClick={handleLogoClick}
           className="flex items-center gap-2 cursor-pointer"
         >
           <Film className="text-indigo-500" size={28} />
@@ -99,6 +115,7 @@ const MobileNavbar = ({ searchQuery, setSearchQuery, handleKeyPress }) => {
                   <X size={20} />
                 </button>
               </div>
+              
               {/* Search Bar */}
               <div className="relative mb-4">
                 <Search

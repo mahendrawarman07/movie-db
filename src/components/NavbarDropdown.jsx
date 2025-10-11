@@ -7,12 +7,14 @@ const NavbarDropdown = () => {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  const menuItems = [
-    { label: 'Popular', path: '/movies/popular', icon: '⭐' },
-    { label: 'Now Playing', path: '/movies/now-playing', icon: '🎬' },
-    { label: 'Upcoming', path: '/movies/upcoming', icon: '🎯' },
-    { label: 'Top Rated', path: '/movies/top-rated', icon: '🏆' }
-  ];
+const menuItems = [
+  { label: 'Popular', path: '/movies/popular', icon: '⭐' },
+  { label: 'Now Playing', path: '/movies/now-playing', icon: '🎬' },
+  { label: 'Upcoming', path: '/movies/upcoming', icon: '🎯' },
+  { label: 'Top Rated', path: '/movies/top-rated', icon: '🏆' },
+  { label: 'Mood Movies', path: '/movies/mood-based', icon: '🎭' }
+];
+
 
   // Close dropdown when clicking outside
   useEffect(() => {

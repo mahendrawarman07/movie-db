@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Add this import
 import {
   Star,
   Clock,
@@ -24,11 +25,13 @@ const MovieDetails = ({
   mode = "modal", // 'modal' or 'fullpage'
   onClose,
   onExpand,
+  onBack, // Add this line
   onAddToWatchlist,
   isInWatchlist = false,
   onMovieClick, // For clicking similar movies
   onPersonClick, // For clicking cast/director (future: person's movies page)
 }) => {
+  const navigate = useNavigate(); // Add this line
   const [movie, setMovie] = useState(null);
   const [credits, setCredits] = useState(null);
   const [videos, setVideos] = useState([]);
@@ -39,6 +42,7 @@ const MovieDetails = ({
   const [activeTab, setActiveTab] = useState("about");
   const [showTrailer, setShowTrailer] = useState(false);
   const [similarScrollPosition, setSimilarScrollPosition] = useState(0);
+  
 
   useEffect(() => {
     if (movieId) {
@@ -208,6 +212,16 @@ const MovieDetails = ({
               <Maximize2 size={20} className="text-white" />
             </button>
           )}
+          {/* ADD THIS BACK BUTTON */}
+{mode === 'fullpage' && (
+  <button
+    onClick={onBack || (() => navigate('/'))}
+    className="absolute top-4 right-4 z-50 p-2 bg-black/50 backdrop-blur-sm rounded-full text-white hover:bg-black/70 transition-all"
+    aria-label="Go back"
+  >
+    <X size={24} />
+  </button>
+)}
           {onClose && (
             <button
               onClick={onClose}

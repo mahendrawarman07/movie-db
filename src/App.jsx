@@ -10,6 +10,10 @@ import WatchlistPage from './components/pages/WatchlistPage';
 // import TopRatedPage from './components/pages/TopRatedPage';         // ADD
 import MovieCategoryPage from './components/pages/MovieCategoryPage';
 import AIRecommendedPage from './components/pages/AIRecommendedPage';
+import MoodBasedPage from './components/pages/MoodBasedPage';
+import SearchResultsPage from './components/pages/SearchResultsPage';
+
+
 
 import { useState } from "react";
 import {
@@ -55,11 +59,19 @@ function App() {
             path="/movies/top-rated" 
             element={<MovieCategoryPage endpoint="top_rated" title="Top Rated Movies" icon="🏆" />} 
           />
-
           <Route 
   path="/movies/ai-recommended" 
   element={<AIRecommendedPage />} 
 />
+<Route 
+  path="/movies/mood-based" 
+  element={<MoodBasedPage />} 
+/>
+<Route 
+  path="/search/:query" 
+  element={<SearchResultsPage />} 
+/>
+
           
           </Routes>
         </BrowserRouter>

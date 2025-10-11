@@ -65,12 +65,13 @@ const WatchlistPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <button
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors"
-            >
-              <ArrowLeft size={20} />
-              <span>Back</span>
-            </button>
+  onClick={() => navigate('/')}
+  className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors"
+>
+  <ArrowLeft size={20} />
+  <span>Back</span>
+</button>
+
             
             <div className="flex items-center gap-2 text-white">
               <Bookmark className="text-indigo-500" size={24} />
@@ -112,11 +113,12 @@ const WatchlistPage = () => {
               Start adding movies you want to watch later
             </p>
             <button
-              onClick={() => navigate('/')}
-              className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-500 hover:to-purple-500 transition-all shadow-lg"
-            >
-              Discover Movies
-            </button>
+  onClick={() => navigate('/')}
+  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-500 hover:to-purple-500 transition-all shadow-lg"
+>
+  Discover Movies
+</button>
+
           </div>
         ) : filteredAndSortedMovies.length === 0 ? (
           <div className="text-center py-20">
@@ -129,9 +131,15 @@ const WatchlistPage = () => {
             {filteredAndSortedMovies.map((movie) => (
               <div key={movie.id} className="group relative">
                 <div 
-                  onClick={() => navigate(`/movie/${movie.id}`)}
-                  className="cursor-pointer"
-                >
+  onClick={() => navigate(`/movie/${movie.id}`, {
+    state: {
+      fromWatchlist: true,
+      returnPath: '/watchlist'
+    }
+  })}
+  className="cursor-pointer"
+>
+
                   <div className="relative overflow-hidden rounded-lg bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/20 hover:border-indigo-500/50">
                     <div className="relative w-full pb-[150%] bg-slate-900/50">
                       {movie.poster_path ? (
